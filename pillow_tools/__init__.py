@@ -1,5 +1,10 @@
 from PIL import Image, ExifTags
 from ffmpy import FFmpeg
+import os
+
+DEBUG = True
+if DEBUG is False:
+    print = lambda *a, **k: None
 
 
 def MakeVideoThumbnail(videoPath, thumbnailWidth=300):
@@ -20,13 +25,18 @@ def MakeVideoThumbnail(videoPath, thumbnailWidth=300):
 
 def OptimizeToSize(imagePath, maxWidth=1920, maxHeight=1080):
     '''
-    This function should scale the image to
+    This function should scale the image to a new resolution not exceeting the maxWidth/maxHeight but preserving the aspect ratio
+
     :param imagePath:
     :param maxWidth:
     :param maxHeight:
-    :return:
+    :return: path to new resized image
     '''
     print('MakeThumbnail(', imagePath, maxWidth, maxHeight)
+
+    if imagePath.lower().endswith('.gif'):
+        return ResizeGif(imagePath, maxWidth, maxHeight)
+
     try:
         saveToPath = '{}_{}x{}.{}'.format(
             imagePath.split('.')[0],
@@ -100,6 +110,95 @@ def OptimizeToSize(imagePath, maxWidth=1920, maxHeight=1080):
     except Exception as e:
         print('19 MakeThumbnail Excpetion:', e)
         return imagePath
+
+
+def ResizeGif(oldPath, maxWidth, maxHeight):
+    '''
+    Taken from
+    https://gist.github.com/BigglesZX/4016539
+    and
+    https://stackoverflow.com/questions/41718892/pillow-resizing-a-gif
+
+    :return:
+    '''
+
+    def analyseImage(path):
+        '''
+        Pre-process pass over the image to determine the mode (full or additive).
+        Necessary as assessing single frames isn't reliable. Need to know the mode
+        before processing all frames.
+        '''
+        im = Image.open(path)
+        results = {
+            'size': im.size,
+            'mode': 'full',
+        }
+        try:
+            while True:
+                if im.tile:
+                    tile = im.tile[0]
+                    update_region = tile[1]
+                    update_region_dimensions = update_region[2:]
+                    if update_region_dimensions != im.size:
+                        results['mode'] = 'partial'
+                        break
+                im.seek(im.tell() + 1)
+        except EOFError:
+            pass
+        return results
+
+    def processImage(path, maxWidth=1920, maxHeight=1080):
+        '''
+        Iterate the GIF, extracting each frame.
+        '''
+        resize_to = (maxWidth, maxHeight)
+
+        mode = analyseImage(path)['mode']
+
+        im = Image.open(path)
+
+        i = 0
+        p = im.getpalette()
+        last_frame = im.convert('RGBA')
+
+        all_frames = []
+        try:
+            while True:
+                print("saving %s (%s) frame %d, %s %s" % (path, mode, i, im.size, im.tile))
+
+                '''
+                If the GIF uses local colour tables, each frame will have its own palette.
+                If not, we need to apply the global palette to the new frame.
+                '''
+                if not im.getpalette():
+                    im.putpalette(p)
+
+                new_frame = Image.new('RGBA', im.size)
+
+                '''
+                Is this file a "partial"-mode GIF where frames update a region of a different size to the entire image?
+                If so, we need to construct the new frame by pasting it on top of the preceding frames.
+                '''
+                if mode == 'partial':
+                    new_frame.paste(last_frame)
+
+                new_frame.paste(im, (0, 0), im.convert('RGBA'))
+                new_frame.thumbnail(resize_to, Image.ANTIALIAS)
+                all_frames.append(new_frame)
+                # new_frame.save('%s-%d.png' % (''.join(os.path.basename(path).split('.')[:-1]), i), 'PNG')
+
+                i += 1
+                last_frame = new_frame
+                im.seek(im.tell() + 1)
+        except EOFError:
+            pass
+        return all_frames
+
+    name, ext = oldPath.split('.')
+    save_as = '{}_{}x{}.{}'.format(name, maxWidth, maxHeight, ext)
+    all_frames = processImage(oldPath, maxWidth, maxHeight)
+    all_frames[0].save(save_as, optimize=True, save_all=True, append_images=all_frames[1:], loop=1000)
+    return save_as
 
 
 def MakeThumbnail(imagePath, thumbnailWidth=300):

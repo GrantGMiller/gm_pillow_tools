@@ -25,7 +25,7 @@ def MakeVideoThumbnail(videoPath, thumbnailWidth=300):
 
 def OptimizeToSize(imagePath, maxWidth=1920, maxHeight=1080):
     '''
-    This function should scale the image to a new resolution not exceeting the maxWidth/maxHeight but preserving the aspect ratio
+    This function should scale the image to a new resolution not exceeding the maxWidth/maxHeight but preserving the aspect ratio
 
     :param imagePath:
     :param maxWidth:
@@ -108,7 +108,7 @@ def OptimizeToSize(imagePath, maxWidth=1920, maxHeight=1080):
         return saveToPath
 
     except Exception as e:
-        print('19 MakeThumbnail Excpetion:', e)
+        print('MakeThumbnail Exception:', e)
         return imagePath
 
 
@@ -238,17 +238,17 @@ def MakeThumbnail(imagePath, thumbnailWidth=300):
 
 
 if __name__ == '__main__':
-    # ret = MakeThumbnail(
-    #     imagePath='static/user_content/1d0f4cff6bd5ee3418092ef3fca3bb597ebb1e25d08336e2e8875efcef124acf44a27c0acb4822074846e357f7dee693afd7bdccfee77c3932a66e6d284ea768.png',
-    # )
-    # print('37 ret=', ret)
-    #
-    # ret = MakeVideoThumbnail(
-    #     videoPath='static/user_content/2018-10-11-1158-02.flv',
-    # )
-    # print('42 ret=', ret)
-    # OptimizeToSize('static/user_content/update.jpg') # 4032x3024
-    # OptimizeToSize('static/user_content/AR mmmkay copy.png')# 1198x1299
-    # OptimizeToSize('static/user_content/potato.PNG') #431x458
-    # OptimizeToSize('static/user_content/3024x4028.jpg') #3024x4032
+    savePath = MakeThumbnail(
+        imagePath='static/user_content/1d0f4cf68.png',
+    )
+    print('savePath=', savePath)
+
+    savePath = MakeVideoThumbnail(
+        videoPath='static/user_content/2018-10-11-1158-02.flv',
+    )
+    print('savePath=', savePath)
+    OptimizeToSize('static/user_content/update.jpg') # 4032x3024
+    OptimizeToSize('static/user_content/AR mmmkay copy.png')# 1198x1299
+    OptimizeToSize('static/user_content/potato.PNG') #431x458
+    OptimizeToSize('static/user_content/3024x4028.jpg') #3024x4032
     pass

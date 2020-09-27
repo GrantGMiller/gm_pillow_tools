@@ -47,6 +47,23 @@ def OptimizeToSize(imagePath, maxWidth=1920, maxHeight=1080):
 
         img = Image.open(imagePath)
 
+        # maintain the orientation
+        try:
+
+            for orientation in ExifTags.TAGS.keys():
+                if ExifTags.TAGS[orientation] == 'Orientation': break
+            exif = dict(img._getexif().items())
+
+            if exif[orientation] == 3:
+                img = img.rotate(180, expand=True)
+            elif exif[orientation] == 6:
+                img = img.rotate(270, expand=True)
+            elif exif[orientation] == 8:
+                img = img.rotate(90, expand=True)
+
+        except Exception as e:
+            print('133', e)
+
         print('img.size=', img.size)
         width, height = img.size
 
@@ -129,6 +146,24 @@ def ResizeGif(oldPath, maxWidth, maxHeight):
         before processing all frames.
         '''
         im = Image.open(path)
+
+        # maintain the orientation
+        try:
+
+            for orientation in ExifTags.TAGS.keys():
+                if ExifTags.TAGS[orientation] == 'Orientation': break
+            exif = dict(im._getexif().items())
+
+            if exif[orientation] == 3:
+                img = im.rotate(180, expand=True)
+            elif exif[orientation] == 6:
+                img = im.rotate(270, expand=True)
+            elif exif[orientation] == 8:
+                img = im.rotate(90, expand=True)
+
+        except Exception as e:
+            print('133', e)
+
         results = {
             'size': im.size,
             'mode': 'full',
@@ -238,17 +273,16 @@ def MakeThumbnail(imagePath, thumbnailWidth=300):
 
 
 if __name__ == '__main__':
-    savePath = MakeThumbnail(
-        imagePath='static/user_content/1d0f4cf68.png',
-    )
-    print('savePath=', savePath)
+    BASE = r'C:\Users\gmiller\PycharmProjects\pillow_tools\\'
 
-    savePath = MakeVideoThumbnail(
-        videoPath='static/user_content/2018-10-11-1158-02.flv',
-    )
-    print('savePath=', savePath)
-    OptimizeToSize('static/user_content/update.jpg') # 4032x3024
-    OptimizeToSize('static/user_content/AR mmmkay copy.png')# 1198x1299
-    OptimizeToSize('static/user_content/potato.PNG') #431x458
-    OptimizeToSize('static/user_content/3024x4028.jpg') #3024x4032
-    pass
+    OptimizeToSize(imagePath=f'{BASE}snake.gif', maxWidth=50)
+    OptimizeToSize(imagePath=f'{BASE}snake.gif', maxWidth=100)
+
+    OptimizeToSize(imagePath=f'{BASE}rick roll copy.png', maxWidth=50)
+    OptimizeToSize(imagePath=f'{BASE}rick roll copy.png', maxWidth=100)
+
+    MakeThumbnail(imagePath=f'{BASE}snake.gif', thumbnailWidth=50)
+    MakeThumbnail(imagePath=f'{BASE}snake.gif', thumbnailWidth=50)
+
+    MakeThumbnail(imagePath=f'{BASE}rick roll copy.png', thumbnailWidth=50)
+    MakeThumbnail(imagePath=f'{BASE}rick roll copy.png', thumbnailWidth=100)
